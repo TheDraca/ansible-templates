@@ -1,12 +1,20 @@
-tasks:
-  - name: Update all packages to their latest version on Debian Family
-    apt:
-      name: "*"
-      state: latest
-      force_apt_get: true
-      update_cache: true
-      cache_valid_time: 3600
-    notify:
-      - reboot_machine
-    when:
-      - ansible_os_family == 'Debian'
+---
+- hosts: all
+  gather_facts: yes
+  become: yes
+
+  tasks:
+    - name: Perform a dist-upgrade.
+      ansible.builtin.apt:
+        upgrade: dist
+        update_cache: yes
+
+    - name: Check if a reboot is required.
+      ansible.builtin.stat:
+        path: /var/run/reboot-required
+        get_checksum: no
+      register: reboot_required_file
+
+    - name: Reboot the server (if required).
+      ansible.builtin.reboot:
+      when: reboot_required_file.stat.exists == true
