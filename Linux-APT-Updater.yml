@@ -1,10 +1,11 @@
----
-- hosts: all
-
-  become: true
-
-  tasks:
-    - name: APT Package Updater
-      apt:
-        upgrade: yes
-        update_cache: yes
+- name: Update all packages to their latest version on Debian Family
+  apt:
+    name: "*"
+    state: latest
+    force_apt_get: true
+    update_cache: true
+    cache_valid_time: 3600
+  notify:
+    - reboot_machine
+  when:
+    - ansible_os_family == 'Debian'
